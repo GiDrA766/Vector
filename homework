@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
+#include <iterator>
 template <typename T> class Vector {
 private:
   size_t m_size;
@@ -93,10 +93,11 @@ public:
   }
   void clear() { m_size = 0; }
 };
-Vector<int>(Vector<int>  vec)
+
+Vector<int> Multi(Vector<int>  vec)
 {
   int multiplikate=1;
-  int count =0
+  int count =0;
   for(size_t i=0; i<vec.size())
     {
       if (vec[i])
@@ -115,7 +116,35 @@ Vector<int>(Vector<int>  vec)
       else 
           vec[i] = multiplikate/vec[i];          
     }
-  returm vec;
+  return vec;
+}
+Vector<int> Lucky(Vector<Vector<int>>&vec)
+{
+    Vector<int> lucky_numbers;
+    int max;
+    int min;
+    for(size_t i=0; i<vec.size(); ++i)
+    {
+      max = INT32_MIN;
+      min = INT32_MAX;
+      int index;
+      for(size_t j =0; j<vec[i].size(); ++j)
+      {
+        if(min>vec[i][j])
+        {
+          min = vec[i][j];
+          index = j;
+        }
+      }
+      for(size_t z =0; z<vec.size(); ++z)
+      {
+        if(max<vec[z][index])
+            max = vec[z][index];
+      }
+      if(min==max)
+        lucky_numbers.push_back(min);
+    }
+    return lucky_numbers;
 }
 int main() 
 
