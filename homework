@@ -93,6 +93,30 @@ public:
   }
   void clear() { m_size = 0; }
 };
+Vector<int>(Vector<int>  vec)
+{
+  int multiplikate=1;
+  int count =0
+  for(size_t i=0; i<vec.size())
+    {
+      if (vec[i])
+          multiplikate *= vec[i];
+      else (!vec[i])
+          count++;
+    }
+  for(size_t i=0; i<vec.size())
+    {
+      if(count >1)
+          vec[i] =0;
+      else if(count == 1 && vec[i])
+          vec[i] = 0;
+      else if(count == 1 && (!vec[i]))
+          vec[i] = multiplikate;
+      else 
+          vec[i] = multiplikate/vec[i];          
+    }
+  returm vec;
+}
 int main() 
 
 {
