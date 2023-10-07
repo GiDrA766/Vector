@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <iterator>
+#include <cassert>
 template <typename T> class Vector {
 private:
   size_t m_size;
@@ -16,7 +17,7 @@ private:
 public:
   Vector() : capasity(10), m_size(0), arr(new T[capasity]) {}
   Vector(size_t num)
-      : capasity(2 * num), m_size(num), arr(new T[capasity]{0}) {}
+      : capasity(2 * num), m_size(num), arr(new T[capasity]{}) {}
   Vector(size_t num, T elem)
       : capasity(2 * num), m_size(num), arr(new T[capasity]{}) {
         for(size_t i=0; i< num; ++i)
@@ -63,11 +64,11 @@ public:
   const T &operator[](size_t index) const { return arr[index]; }
   T &operator[](size_t index) { return arr[index]; }
   const T &at(size_t index) const {
-    if (index >= 0 && index < m_size)
+     assert(index<m_size);
       return arr[index];
   }
   T &at(size_t index) {
-    if (index >= 0 && index < m_size)
+    assert(index<m_size);
       return arr[index];
   }
   void push_back(const T &x) {
