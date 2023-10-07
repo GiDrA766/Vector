@@ -32,7 +32,7 @@ public:
   }
   ~Vector() { delete[] arr; }
 
-  Vector<T> &operator=(const Vector<T> other) {
+  Vector<T>& operator=(const Vector<T>& other) {
     if (other.m_size <= capasity)
       m_size = other.m_size;
     else {
