@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <iostream>
-#include <string>
 #include <vector>
 #include <iterator>
 #include <cassert>
+#include <initializer_list>
 template <typename T> class Vector {
 private:
   size_t m_size;
@@ -29,6 +29,15 @@ public:
     std::swap(arr, vec.arr);
     std::swap(capasity, vec.capasity);
     std::swap(m_size, vec.m_size);
+  }
+  Vector(std::initializer_list<T> list):Vector(list.size())
+  {
+      std::size_t count=0;
+      for(std::initializer_list<int>::iterator it = list.begin(); it!=list.end(); ++it)
+      {
+          arr[count]= *it;
+          ++count;
+      }
   }
   ~Vector() { delete[] arr; }
 
@@ -57,6 +66,7 @@ public:
     std::swap(arr, other.arr);
     return *this;
   }
+ 
   size_t size() const { return m_size; }
   size_t cap() const { return capasity; }
 
@@ -102,13 +112,13 @@ Vector<int> Multi(Vector<int>  vec)
 {
   int left_score=1;
   int right_score=1;
-  std::vector<int> result(vec.size(), 1);
+  Vector<int> result(vec.size(), 1);
   for(std::size_t i =0; i<vec.size(); ++i)
   {
     result[i]*=left_score;
     left_score*= vec[i];
   }
-  for(std::size_t i =vec.size()-1; i>=0; --i)
+  for(std::size_t i =vec.size()-1; i<vec.size(); --i)
   {
     result[i]*=right_score;
     right_score*= vec[i];
@@ -147,5 +157,9 @@ Vector<int> Lucky(Vector<Vector<int>>&vec)
 int main() 
 
 {
-  
+  Vector<int> vec({1, 7, 5 ,8});
+  Vector <int> vec2 = Multi(vec);
+  for(std::size_t i =0; i<vec2.size(); ++i)
+        std::cout<<vec2[i]<<" ";
+  return 0;
 }
