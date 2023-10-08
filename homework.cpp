@@ -100,27 +100,21 @@ public:
 
 Vector<int> Multi(Vector<int>  vec)
 {
-  int multiplikate=1;
-  int count =0;
-  for(size_t i=0; i<vec.size(); ++i)
-    {
-      if (vec[i])
-          multiplikate *= vec[i];
-      else 
-          count++;
-    }
-  for(size_t i=0; i<vec.size(); ++i)
-    {
-      if(count >1)
-          vec[i] =0;
-      else if(count == 1 && vec[i])
-          vec[i] = 0;
-      else if(count == 1 && (!vec[i]))
-          vec[i] = multiplikate;
-      else 
-          vec[i] = multiplikate/vec[i];          
-    }
-  return vec;
+  int left_score=1;
+  int right_score=1;
+  std::vector<int> result(vec.size(), 1);
+  for(std::size_t i =0; i<vec.size(); ++i)
+  {
+    result[i]*=left_score;
+    left_score*= vec[i];
+  }
+  for(std::size_t i =vec.size()-1; i>=0; --i)
+  {
+    result[i]*=right_score;
+    right_score*= vec[i];
+  }
+  
+  return result;
 }
 Vector<int> Lucky(Vector<Vector<int>>&vec)
 {
