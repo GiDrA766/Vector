@@ -1,8 +1,5 @@
 #include <iostream>
 
-
-
-
 template <typename T> class List {
   struct Node {
     T data;
@@ -404,16 +401,52 @@ template <typename T> bool operator==(const List<T> &l1, const List<T> &l2) {
   return true;
 }
 
-template<typename T>
-void particalsort (List<T> &l, T n) 
-{
-  
+template <typename T> void particalsort(List<T> &l, T n) {
+  typename List<T>::iterator left = l.begin();
+  typename List<T>::iterator right = l.end();
+  --right;
+  while (left != right) {
+    if (*left >= n) {
+      std::swap(*left, *right);
+      left++;
+      if (left == right)
+        break;
+      right--;
+      if (left == right)
+        break;
+    } else
+      left++;
+    if (left == right)
+      break;
+  }
+}
+
+void fuse_letters_to_big(List<char> &l) {
+  typename List<char>::iterator it = l.begin();
+  typename List<char>::iterator temp = it;
+  it++;
+  bool morethanone = false;
+  while (it != l.end()) {
+    if (*temp == *it) {
+      l.erase(it++);
+      morethanone = true;
+      continue;
+    } else if (morethanone) {
+      *temp += 'A' - 'a';
+      ++temp;
+      morethanone = false;
+    } else
+      ++temp;
+    ++it;
+  }
 }
 int main() {
-  List<int> ilist{5, 8, 9, 7, 4};
-  auto it = ilist.end();
-  ++it;
-  std::cout << *it;
+  // List<int> ilist{5, 8, 9, 7, 4, 45, 20, 1, 3, 2, 6};
+  // particalsort(ilist, 7);
+  List<char> ilist{'c', 'c', 'a', 'd', 'd', 'b', 'b', 'b', 't'};
+  fuse_letters_to_big(ilist);
+  for (auto it : ilist)
+    std::cout << it << " ";
 
   return 0;
 }
