@@ -1,165 +1,452 @@
-#include <algorithm>
 #include <iostream>
-#include <vector>
-#include <iterator>
-#include <cassert>
-#include <initializer_list>
-template <typename T> class Vector {
-private:
-  size_t m_size;
-  size_t capasity;
-  T *arr;
-  void copy(const Vector<T> &vec) {
-    for (size_t i = 0; i < m_size; ++i)
-      arr[i] = vec.arr[i];
-  }
+
+template <typename T> class List {
+  struct Node {
+    T data;
+    Node *next;
+    Node *prev;
+  };
+
+  Node *head;
+  Node *tail;
+  std ::size_t size_;
 
 public:
-  Vector() : capasity(10), m_size(0), arr(new T[capasity]) {}
-  Vector(size_t num)
-      : capasity(2 * num), m_size(num), arr(new T[capasity]{}) {}
-  Vector(size_t num, T elem)
-      : capasity(2 * num), m_size(num), arr(new T[capasity]{}) {
-        for(size_t i=0; i< num; ++i)
-          arr[i]=elem;
-      }
-  Vector(const Vector<T> &vec) : Vector(vec.m_size) { copy(vec); }
-  Vector(Vector<T> &&vec): capasity(10), m_size(0), arr(new T[capasity])
-  { 
-    std::swap(arr, vec.arr);
-    std::swap(capasity, vec.capasity);
-    std::swap(m_size, vec.m_size);
-  }
-  Vector(std::initializer_list<T> list):Vector(list.size())
-  {
-      std::size_t count=0;
-      for(std::initializer_list<int>::iterator it = list.begin(); it!=list.end(); ++it)
-      {
-          arr[count]= *it;
-          ++count;
-      }
-  }
-  ~Vector() { delete[] arr; }
+  class iterator {
+    Node *current;
 
-  Vector<T>& operator=(const Vector<T>& other) {
-    if (other.m_size <= capasity)
-      m_size = other.m_size;
+  public:
+    using value_type = T;
+    using reference = T &;
+    using pointer = T *;
+    using difference_type = std::ptrdiff_t;
+    using iterator_category = std::bidirectional_iterator_tag;
+
+    iterator(){};
+    iterator(Node *node) : current(node) {}
+    const reference operator*() const { return current->data; }
+    reference operator*() { return current->data; }
+    const pointer operator->() const { return &(current->data); }
+    pointer operator->() { return &(current->data); }
+    iterator &operator++();
+    iterator operator++(int);
+    iterator &operator--();
+    iterator operator--(int);
+    friend const bool operator==(iterator lhs, iterator rhs) {
+      return lhs.current == rhs.current;
+    }
+    friend const bool operator!=(iterator lhs, iterator rhs) {
+      return !(lhs == rhs);
+    }
+    friend class List;
+  };
+
+  List() {
+    endnode = new Node;
+    head = endnode;
+    tail = endnode;
+    endnode->next = head;
+    endnode->prev = tail;
+    size_ = 0;
+  };
+  List(size_t count, const T &value = T()) {
+
+    if (count == 0) {
+      List();
+    } else {
+      endnode = new Node;
+      Node *node = new Node;
+      node->data = value;
+      node->prev = endnode;
+      node->next = nullptr;
+      head = node;
+      for (size_t i = 1; i < count; i++) {
+        Node *temp = new Node;
+        temp->data = value;
+        temp->prev = node;
+        temp->next = nullptr;
+        node->next = temp;
+        node = temp;
+      }
+      tail = node;
+      tail->next = endnode;
+      endnode->next = head;
+      endnode->prev = tail;
+    }
+  };
+  List(const List &other) {
+    if (other.head == other.endnode) {
+      List();
+    } else {
+      endnode = new Node;
+      size_ = other.size_;
+      Node *node = new Node;
+      node->data = other.head->data;
+      node->prev = endnode;
+      node->next = nullptr;
+      head = node;
+      for (Node *temp = other.head->next; temp != endnode; temp = temp->next) {
+        Node *temp2 = new Node;
+        temp2->prev = node;
+        temp2->next = nullptr;
+        temp2->data = temp->data;
+        node->next = temp2;
+        node = temp2;
+      }
+      tail = node;
+      tail->next = endnode;
+      endnode->next = head;
+      endnode->prev = tail;
+    }
+  };
+  List(List &&other) {
+    head = std::move(other.head);
+    tail = std::move(other.tail);
+    size_ = std::move(other.size_);
+    endnode = std::move(other.endnode);
+  }
+  List(std::initializer_list<T> ilist) {
+    if (!(ilist.size()))
+      List();
     else {
-      capasity = 2 * other.m_size;
-      m_size = other.m_size;
-      delete[] arr;
-      arr = new T[capasity];
+      endnode = new Node;
+      size_ = ilist.size();
+      Node *node = new Node;
+      node->data = *(ilist.begin());
+      node->prev = endnode;
+      node->next = nullptr;
+      head = node;
+      typename std::initializer_list<T>::iterator it = ilist.begin();
+      ++it;
+      for (; it != ilist.end(); ++it) {
+        Node *temp = new Node;
+        temp->prev = node;
+        temp->next = nullptr;
+        temp->data = *it;
+        node->next = temp;
+        node = temp;
+      }
+      tail = node;
+      tail->next = endnode;
+      endnode->next = head;
+      endnode->prev = tail;
     }
-    for (size_t i = 0; i < m_size; ++i)
-      arr[i] = other.arr[i];
-    return *this;
   }
-  Vector<T> &operator=(Vector<T> &&other) {
-    if (arr == other.arr)
-      return *this;
-    delete[] arr;
-    capasity = 10;
-    m_size = 0;
-    arr = new T[capasity];
-    std::swap(capasity, other.capasity);
-    std::swap(m_size, other.m_size);
-    std::swap(arr, other.arr);
-    return *this;
-  }
- 
-  size_t size() const { return m_size; }
-  size_t cap() const { return capasity; }
 
-  bool empty() const { return m_size == 0; }
-  const T &operator[](size_t index) const { return arr[index]; }
-  T &operator[](size_t index) { return arr[index]; }
-  const T &at(size_t index) const {
-     assert(index<m_size);
-      return arr[index];
-  }
-  T &at(size_t index) {
-    assert(index<m_size);
-      return arr[index];
-  }
-  void push_back(const T &x) {
-    if (m_size >= capasity) {
-      Vector<T> temp(m_size);
-      temp = *this;
-      std::swap(temp.arr, arr);
-      std::swap(temp.m_size, m_size);
-      std::swap(temp.capasity, capasity);
+  ~List() {
+    while (head != endnode) {
+      Node *temp = head;
+      head = head->next;
+      delete temp;
     }
-    arr[m_size++] = x;
+    delete endnode;
   }
-  void push_back(T &&x) {
-     if (m_size >= capasity) {
-      Vector<T> temp(m_size);
-      temp = *this;
-      std::swap(temp.arr, arr);
-      std::swap(temp.m_size, m_size);
-      std::swap(temp.capasity, capasity);
-    }
-    arr[m_size++] = std::move(x);
-  }
-  void pop_back() {
-    if (m_size)
-      --m_size;
-  }
-  void clear() { m_size = 0; }
+
+  List &operator=(const List &other);
+  List &operator=(List &&other);
+  List &operator=(std::initializer_list<T> ilist);
+
+  // Element access
+  T &front();
+  const T &front() const;
+  T &back();
+  const T &back() const;
+
+  // erase
+  iterator erase(iterator pos);
+  iterator erase(iterator first, iterator last);
+  // Capacity
+  bool empty() const;
+  size_t size() const;
+
+  // Modifiers
+  iterator insert(iterator pos, const T &value);
+  iterator insert(iterator pos, T &&value);
+  iterator insert(iterator pos, std::initializer_list<T> ilist);
+
+  void push_front(const T &value);
+  void push_front(T &&value);
+  void push_back(const T &value);
+  void push_back(T &&value);
+
+  void pop_front();
+  void pop_back();
+
+  // Iterators
+  iterator begin() { return iterator(head); }
+  iterator end() { return iterator(endnode); }
+  // Comparison
+  friend bool operator==(const List<T> &lhs, const List<T> &rhs);
+
+private:
+  Node *endnode;
 };
 
-Vector<int> Multi(Vector<int>  vec)
-{
-  int left_score=1;
-  int right_score=1;
-  Vector<int> result(vec.size(), 1);
-  for(std::size_t i =0; i<vec.size(); ++i)
-  {
-    result[i]*=left_score;
-    left_score*= vec[i];
-  }
-  for(std::size_t i =vec.size()-1; i<vec.size(); --i)
-  {
-    result[i]*=right_score;
-    right_score*= vec[i];
-  }
-  
-  return result;
+// compraision operators for iterators
+// template <typename T>
+// const bool operator==(typename List<T>::iterator lhs,
+//                       typename List<T>::iterator rhs) {
+//   return lhs.current == rhs.current;
+// }
+// template <typename T>
+// const bool operator!=(typename List<T>::iterator lhs,
+//                       typename List<T>::iterator rhs) {
+//   return !(lhs == rhs);
+// }
+// increment and decrement operators for iterators
+template <typename T>
+typename List<T>::iterator &List<T>::iterator::operator++() {
+  current = current->next;
+  return *this;
 }
-Vector<int> Lucky(Vector<Vector<int>>&vec)
-{
-    Vector<int> lucky_numbers;
-    int max;
-    int min;
-    for(size_t i=0; i<vec.size(); ++i)
-    {
-      max = INT32_MIN;
-      min = INT32_MAX;
-      int index;
-      for(size_t j =0; j<vec[i].size(); ++j)
-      {
-        if(min>vec[i][j])
-        {
-          min = vec[i][j];
-          index = j;
-        }
-      }
-      for(size_t z =0; z<vec.size(); ++z)
-      {
-        if(max<vec[z][index])
-            max = vec[z][index];
-      }
-      if(min==max)
-        lucky_numbers.push_back(min);
-    }
-    return lucky_numbers;
+template <typename T>
+typename List<T>::iterator List<T>::iterator::operator++(int) {
+  iterator temp = *this;
+  ++(*this);
+  return temp;
 }
-int main() 
+template <typename T>
+typename List<T>::iterator &List<T>::iterator::operator--() {
+  current = current->prev;
+  return *this;
+}
+template <typename T>
+typename List<T>::iterator List<T>::iterator::operator--(int i) {
+  iterator temp = *this;
+  --(*this);
+  return temp;
+}
+// operator =
+template <typename T> List<T> &List<T>::operator=(List<T> &&other) {
+  if (this == other)
+    return *this;
+  std::swap(head, other.head);
+  std::swap(tail, other.tail);
+  std::swap(size_, other.size_);
+  std::swap(endnode, other.endnode);
+  return *this;
+}
+template <typename T>
+List<T> &List<T>::operator=(std::initializer_list<T> ilist) {
+  List<T> temp(ilist);
+  this->operator=(std::move(temp));
+  return *this;
+}
+template <typename T> List<T> &List<T>::operator=(const List<T> &other) {
+  if (this == &other)
+    return *this;
+  List<T> temp(other);
+  this->operator=(std::move(temp));
+  return *this;
+}
+// front and back
+template <typename T> T &List<T>::front() { return head->data; }
 
-{
-  Vector<int> vec({1, 7, 5 ,8});
-  Vector <int> vec2 = Multi(vec);
-  for(std::size_t i =0; i<vec2.size(); ++i)
-        std::cout<<vec2[i]<<" ";
+template <typename T> const T &List<T>::front() const { return head->data; }
+template <typename T> T &List<T>::back() { return tail->data; }
+
+template <typename T> const T &List<T>::back() const { return tail->data; }
+
+// empty and size
+template <typename T> bool List<T>::empty() const { return size_ == 0; }
+
+template <typename T> size_t List<T>::size() const { return size_; }
+
+// erase
+template <typename T>
+typename List<T>::iterator List<T>::erase(typename List<T>::iterator pos) {
+  if (pos == end())
+    return pos;
+  Node *temp = pos.current;
+  pos.current->prev->next = pos.current->next;
+  pos.current->next->prev = pos.current->prev;
+  if (pos == begin())
+    head = pos.current->next;
+  if (pos.current == tail)
+    tail = pos.current->prev;
+  pos = pos.current->next;
+  delete temp;
+  size_--;
+  return pos;
+}
+template <typename T>
+typename List<T>::iterator List<T>::erase(typename List<T>::iterator first,
+                                          typename List<T>::iterator last) {
+  for (; first != last;) {
+    auto temp = first;
+    first++;
+    erase(temp);
+  }
+  return last;
+}
+
+// modifers
+template <typename T>
+typename List<T>::iterator List<T>::insert(typename List<T>::iterator pos,
+                                           const T &value) {
+  List<T>::Node *new_node = new List<T>::Node;
+  new_node->data = value;
+  new_node->next = pos.current;
+  new_node->prev = pos.current->prev;
+  pos.current->prev->next = new_node;
+  pos.current->prev = new_node;
+  if (pos.current == head)
+    head = new_node;
+  if (pos.current == endnode)
+    tail = new_node;
+  ++size_;
+  return new_node;
+}
+template <typename T>
+typename List<T>::iterator List<T>::insert(typename List<T>::iterator pos,
+                                           T &&value) {
+  List<T>::Node *new_node = new List<T>::Node;
+  new_node->data = std::move(value);
+  new_node->next = pos.current;
+  new_node->prev = pos.current->prev;
+  pos.current->prev->next = new_node;
+  pos.current->prev = new_node;
+  if (pos.current == head)
+    head = new_node;
+  if (pos.current == endnode)
+    tail = new_node;
+  ++size_;
+  return new_node;
+}
+template <typename T>
+typename List<T>::iterator List<T>::insert(typename List<T>::iterator pos,
+                                           std::initializer_list<T> ilist) {
+  if (ilist.size() == 0)
+    return pos;
+  typename List<T>::iterator ret = insert(pos, *(ilist.begin()));
+  auto it = ilist.begin();
+  ++it;
+  for (; it != ilist.end(); ++it) {
+    insert(pos, *it);
+  }
+  return ret;
+}
+
+// push_back and push_front
+template <typename T> void List<T>::push_front(const T &value) {
+  List<T>::Node *new_node = new List<T>::Node;
+  new_node->data = value;
+  new_node->next = head;
+  new_node->prev = endnode;
+  endnode->next = new_node;
+  head->prev = new_node;
+  head = new_node;
+}
+template <typename T> void List<T>::push_front(T &&value) {
+  List<T>::Node *new_node = new List<T>::Node;
+  new_node->data = std::move(value);
+  new_node->next = head;
+  new_node->prev = endnode;
+  endnode->next = new_node;
+  head->prev = new_node;
+  head = new_node;
+}
+template <typename T> void List<T>::push_back(const T &value) {
+  List<T>::Node *new_node = new List<T>::Node;
+  new_node->data = value;
+  new_node->prev = tail;
+  new_node->next = endnode;
+  tail->next = new_node;
+  endnode->prev = new_node;
+  tail = new_node;
+}
+template <typename T> void List<T>::push_back(T &&value) {
+  List<T>::Node *new_node = new List<T>::Node;
+  new_node->data = std::move(value);
+  new_node->prev = tail;
+  new_node->next = endnode;
+  tail->next = new_node;
+  endnode->prev = new_node;
+  tail = new_node;
+}
+
+// pop_front and pop_back
+template <typename T> void List<T>::pop_back() {
+  if (tail == endnode)
+    return;
+  endnode->prev = tail->prev;
+  tail->prev->next = endnode;
+  delete tail;
+  tail = endnode->prev;
+  --size_;
+  if (tail == endnode)
+    head = endnode;
+}
+template <typename T> void List<T>::pop_front() {
+  if (head == endnode)
+    return;
+  endnode->next = head->next;
+  head->next->prev = endnode;
+  delete head;
+  head = endnode->next;
+  --size_;
+  if (head == endnode)
+    tail = endnode;
+}
+
+// compraison of List
+template <typename T> bool operator==(const List<T> &l1, const List<T> &l2) {
+  if (l1.size() != l2.size())
+    return false;
+  typename List<T>::Node *it1 = l1.head;
+  typename List<T>::Node *it2 = l2.head;
+  for (; it1 != l1.end(); ++it1, ++it2)
+    if (it1->data != it2->data)
+      return false;
+  return true;
+}
+
+template <typename T> void particalsort(List<T> &l, T n) {
+  typename List<T>::iterator left = l.begin();
+  typename List<T>::iterator right = l.end();
+  --right;
+  while (left != right) {
+    if (*left >= n) {
+      std::swap(*left, *right);
+      left++;
+      if (left == right)
+        break;
+      right--;
+      if (left == right)
+        break;
+    } else
+      left++;
+    if (left == right)
+      break;
+  }
+}
+
+void fuse_letters_to_big(List<char> &l) {
+  typename List<char>::iterator it = l.begin();
+  typename List<char>::iterator temp = it;
+  it++;
+  bool morethanone = false;
+  while (it != l.end()) {
+    if (*temp == *it) {
+      l.erase(it++);
+      morethanone = true;
+      continue;
+    } else if (morethanone) {
+      *temp += 'A' - 'a';
+      ++temp;
+      morethanone = false;
+    } else
+      ++temp;
+    ++it;
+  }
+}
+int main() {
+  // List<int> ilist{5, 8, 9, 7, 4, 45, 20, 1, 3, 2, 6};
+  // particalsort(ilist, 7);
+  List<char> ilist{'c', 'c', 'a', 'd', 'd', 'b', 'b', 'b', 't'};
+  fuse_letters_to_big(ilist);
+  for (auto it : ilist)
+    std::cout << it << " ";
+
   return 0;
 }
