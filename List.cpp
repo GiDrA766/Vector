@@ -85,7 +85,7 @@ public:
       node->prev = endnode;
       node->next = nullptr;
       head = node;
-      for (Node *temp = other.head->next; temp != endnode; temp = temp->next) {
+      for (Node *temp = other.head->next; temp != other.endnode; temp = temp->next) {
         Node *temp2 = new Node;
         temp2->prev = node;
         temp2->next = nullptr;
